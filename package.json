@@ -1,0 +1,14 @@
+{
+  "name": "draw-braille",
+  "version": "0.0.1",
+  "description": "CU Project",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "BobbyL2k",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.14.0"
+  }
+}
