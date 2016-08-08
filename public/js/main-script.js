@@ -41,6 +41,19 @@ function init(){
     g_.storage = {};
 }
 
+function loadNum(test) {
+    console.log(test);
+}
+
+function slider(eiei) {
+    console.log(eiei);
+}
+$('#ex1').slider({
+	formatter: function(value) {
+		return 'Current value: ' + value;
+	}
+});
+
 function loadImage() {
     console.log("Loading Image");
     var input, file, fr, img;
