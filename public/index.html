@@ -29,17 +29,17 @@
                 <a class="navbar-brand" href="#">DrawBraille</a>
             </div>
         </nav>
-        
+
         <div class="container">
             <div class="page-header">
                 <h1>DrawBraille</h1>
                 <p class="lead">Currently under development</p>
-                <h2>Configeration</h2>
-                <label class="btn btn-default btn-file">
+                <h2>Configuration</h2>
+                <label class="">
                     Printer resolution
-                    <input name="printer-width" type="number" placeholder="Width" onchange="handleOnChange(this);">
+                    <input id="printer-width" name="printer-width" type="number" placeholder="Width">
                     x
-                    <input name="printer-height" type="number" placeholder="Height" onchange="handleOnChange(this);">
+                    <input id="printer-height" name="printer-height" type="number" placeholder="Height">
                 </label>
             </div>
             <div class="page">
@@ -51,28 +51,60 @@
             <div id="image-preview" class="page">
                 <h3>image-preview</h3>
                 <canvas id="image-preview-canvas" class="canvas-preview"></canvas>
+                <div class="row">
+                    <div class="col-md-1">
+                        Offset X
+                    </div>
+                    <div class="col-md-11">
+                        <input id="offset-x" name="offset-x" class="fill-width" data-slider-id="ctrl1Slider" type="text"/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">
+                        Offset Y
+                    </div>
+                    <div class="col-md-11">
+                        <input id="offset-y" name="offset-y" class="fill-width" data-slider-id="ctrl2Slider" type="text"/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">
+                        Stride coarse
+                    </div>
+                    <div class="col-md-11">
+                        <input id="stride-coarse" name="stride-coarse" type="number" placeholder="px" value="10">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-1">
+                        Stride fine
+                    </div>
+                    <div class="col-md-11">
+                        <input id="stride-fine" name="stride-fine" class="fill-width" data-slider-id="ctrl3Slider" type="text"/>
+                    </div>
+                </div>
             </div>
             <div class="row">
                 <div class="col-md-1">
-                    test
+                    Filter by price interval
                 </div>
                 <div class="col-md-11">
-                    <!--<input type="range" name="test" value="" onchange="slider(this.value)" step="0.25">-->
-                    <input id="ex1" class="fill-width" data-slider-id='ex1Slider' type="text" data-slider-min="0" data-slider-max="20" data-slider-step="0.1" data-slider-value="14"/>
+                    <input id="ex2" name="test2" class="span2" value="" type="text" data-slider-min="10" data-slider-max="1000" data-slider-step="5" data-slider-value="[250,450]"/>
                 </div>
             </div>
             <div id="braille-preview" class="page">
                 <h3>braille-preview</h3>
-                <canvas id="braille-preview-canvas" class="canvas-preview"></canvas>
+                <canvas id="braille-preview-canvas" class="canvas-preview braille"></canvas>
             </div>
         </div>
-        
+
         <!-- jQuery for Bootstrap -->
         <script src="js/jquery.min.js"></script>
         <!-- Latest compiled and minified JavaScript -->
         <script src="js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.1.3/bootstrap-slider.min.js"></script>
+        <script src="js/computer-vision.js"></script>
         <script src="js/main-script.js"></script>
     </body>
-    
+
 </html>

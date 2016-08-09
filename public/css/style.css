@@ -3,6 +3,10 @@ canvas.canvas-preview {
     height: 100%;
 }
 
+canvas.braille {
+    image-rendering: pixelated;
+}
+
 .slider.slider-horizontal {
     width: 100%
 }
