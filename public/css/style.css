@@ -2,3 +2,11 @@ canvas.canvas-preview {
     width: 100%;
     height: 100%;
 }
+
+canvas.braille {
+    image-rendering: pixelated;
+}
+
+.slider.slider-horizontal {
+    width: 100%
+}
