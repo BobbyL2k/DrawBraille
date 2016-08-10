@@ -17,10 +17,11 @@ function init(){
         offsetY: 10,
         strideCoarse: 0,
         strideFine: 0.5,
+        strideDiv: 1
     };
 
     // Initial Event Binding
-    inputElementIdList = ['#printer-width', '#printer-height', '#stride-coarse'];
+    inputElementIdList = ['#printer-width', '#printer-height', '#stride-coarse', '#stride-div'];
     inputElementIdList.forEach(function(elementId) {
         console.log($(elementId));
         $(elementId).change(inputHandler);
@@ -81,6 +82,9 @@ function valueHandler(name, value) {
         case 'stride-fine':
             g_.storage.strideFine = value;
             break;
+        case 'stride-div':
+            g_.storage.strideDiv = value;
+            break;
 
         default:
             console.log("unknown name", name);
@@ -92,7 +96,7 @@ function valueHandler(name, value) {
 function update(){
     if(g_.storage.originalImageData !== undefined){
         stride = g_.storage.strideCoarse + g_.storage.strideFine;
-        previewBraille(g_.storage.originalImageData, stride, stride, g_.storage.offsetY, g_.storage.offsetX);
+        previewBraille(g_.storage.originalImageData, stride, stride, g_.storage.offsetY, g_.storage.offsetX, g_.storage.strideDiv);
     }
 }
 
@@ -145,16 +149,20 @@ function loadImage() {
     }
 }
 
-function previewBraille(originalImage, strideY=30, strideX=30, offsetY=10, offsetX=10) {
-    canvas = braillePreviewCanvasElement;
-    var ctx = canvas.getContext("2d");
+function previewBraille(originalImage, strideY=30, strideX=30, offsetY=10, offsetX=10, strideDiv=1) {
 
     originalCVImage = cv.cvtImageData2CVImage(originalImage);
-    lowresCVImage = cv.stride(originalCVImage, strideY, strideX, offsetY, offsetX);
+    lowresCVImage = cv.stride(originalCVImage, strideY/strideDiv, strideX/strideDiv, offsetY, offsetX);
 
     lowresImage = cv.cvtCVImage2ImageData(lowresCVImage);
-    canvas.width = lowresImage.width;
-    canvas.height = lowresImage.height;
-    // console.log(canvas.width, canvas.height);
-    ctx.putImageData(lowresImage, 0, 0);
+    braillePreviewCanvasElement.width = lowresImage.width;
+    braillePreviewCanvasElement.height = lowresImage.height;
+    braillePreviewCanvasElement.getContext("2d").putImageData(lowresImage, 0, 0);
+
+    // Show stride
+    console.log(originalCVImage);
+    cv.drawStride(originalCVImage, strideY/strideDiv, strideX/strideDiv, offsetY, offsetX, cv.CONST.color[originalCVImage.type].red);
+    cv.drawStride(originalCVImage, strideY, strideX, offsetY, offsetX, cv.CONST.color[originalCVImage.type].green);
+    originalImage = cv.cvtCVImage2ImageData(originalCVImage);
+    imagePreviewCanvasElement.getContext("2d").putImageData(originalImage, 0, 0);
 }
