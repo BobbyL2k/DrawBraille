@@ -3,7 +3,7 @@ canvas.canvas-preview {
     height: 100%;
 }
 
-canvas.braille {
+canvas.pixelated {
     image-rendering: pixelated;
 }
 

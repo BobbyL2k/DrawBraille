@@ -1,168 +1,207 @@
-/*jshint esversion: 6*/
+/*jshint esversion: 6, browser: true*/
+"use strict";
 
-// Global
-g_ = {};
-init();
+(function(){
+    // Impure Scope
+    // Global
+    var g_ = {};
 
-function init(){
-    // TODO to remove
-    inputImageFileElement = document.getElementById('image-file');
-    imagePreviewCanvasElement = document.getElementById("image-preview-canvas");
-    braillePreviewCanvasElement = document.getElementById("braille-preview-canvas");
+    (function init(){
+        // TODO to remove
+        g_.inputImageFileElement = document.getElementById('image-file');
+        g_.imagePreviewCanvas = new ManagedCanvas("image-preview-canvas");
+        g_.stridePreviewCanvas = new ManagedCanvas("stride-preview-canvas");
+        g_.braillePreviewCanvas = new ManagedCanvas("braille-preview-canvas");
 
-    // Global initialization
-    g_.ctx = imagePreviewCanvasElement.getContext("2d");
-    g_.storage = {
-        offsetX: 10,
-        offsetY: 10,
-        strideCoarse: 0,
-        strideFine: 0.5,
-        strideDiv: 1
-    };
+        // Global initialization
+        g_.storage = {
+            offsetX: 10,
+            offsetY: 10,
+            strideCoarse: 100,
+            strideFine: 0.0,
+            strideDiv: 1,
+            thresholdRange: [125,225]
+        };
 
-    // Initial Event Binding
-    inputElementIdList = ['#printer-width', '#printer-height', '#stride-coarse', '#stride-div'];
-    inputElementIdList.forEach(function(elementId) {
-        console.log($(elementId));
-        $(elementId).change(inputHandler);
-    }, this);
-
-    imageSliderElementIdList = ['#offset-x', '#offset-y'];
-    imageSliderElementIdList.forEach(function(elementId) {
-        $(elementId).slider({
+        // Initial Event Binding
+        $('#image-file').change(loadImageHandler);
+        var inputElementIdList = ['#printer-width', '#printer-height', '#stride-coarse', '#stride-div'];
+        inputElementIdList.forEach(function(elementId) {
+            $(elementId).change(inputHandler);
+        }, this);
+        var offsetSliderElementIdList = ['#offset-x', '#offset-y'];
+        offsetSliderElementIdList.forEach(function(elementId) {
+            $(elementId).slider({
+                formatter: function(value) {
+                    return 'Current value: ' + value;
+                },
+                max: 100,
+                value: 10,
+                min: 0,
+                step: 1
+            }).on('slide', sliderHandler);
+        }, this);
+        var fineSliderElementIdList = ['#stride-fine'];
+        fineSliderElementIdList.forEach(function(elementId) {
+            $(elementId).slider({
+                formatter: function(value) {
+                    return 'Current value: ' + value;
+                },
+                max: 1,
+                value: 0.0,
+                min: 0,
+                step: 0.001
+            }).on('slide', sliderHandler);
+        }, this);
+        $('#threshold-value').slider({
             formatter: function(value) {
                 return 'Current value: ' + value;
-            },
-            max: 100,
-            value: 10,
-            min: 0,
-            step: 1
+            }
         }).on('slide', sliderHandler);
-    }, this);
-    fineSliderElementIdList = ['#stride-fine'];
-    fineSliderElementIdList.forEach(function(elementId) {
-        $(elementId).slider({
-            formatter: function(value) {
-                return 'Current value: ' + value;
-            },
-            max: 1,
-            value: 0.5,
-            min: 0,
-            step: 0.001
-        }).on('slide', sliderHandler);
-    }, this);
+    })();
 
-    $('#ex2').slider({
-        formatter: function(value) {
-            return 'Current value: ' + value;
+    // Event Handler
+    function inputHandler(inputEvent) {
+        valueHandler(inputEvent.target.name, parseInt(inputEvent.target.valueAsNumber));
+    }
+    function sliderHandler(sliderEvent) {
+        valueHandler(sliderEvent.target.name, sliderEvent.value);
+    }
+    function valueHandler(name, value) {
+        // console.log(name, value);
+
+        if(isNaN(value) && !Array.isArray(value)){
+            value = 0;
         }
-    }).on('slide', sliderHandler);
-}
+        var willUpdate = true;
+        switch (name) {
+            case 'offset-x':
+                g_.storage.offsetX = value;
+                break;
+            case 'offset-y':
+                g_.storage.offsetY = value;
+                break;
+            case 'stride-coarse':
+                g_.storage.strideCoarse = value;
+                break;
+            case 'stride-fine':
+                g_.storage.strideFine = value;
+                break;
+            case 'stride-div':
+                g_.storage.strideDiv = value;
+                break;
+            case 'threshold-value':
+                g_.storage.thresholdRange = value;
+                break;
 
-// Event Handler
-function inputHandler(inputElement) {
-    valueHandler(this.name, parseInt(this.value))
-}
-function sliderHandler(sliderElement) {
-    valueHandler(this.name, sliderElement.value);
-}
-function valueHandler(name, value) {
-    console.log(name, value);
-    value = isNaN(value) ? 0 : value;
-    switch (name) {
-        case 'offset-x':
-            g_.storage.offsetX = value;
-            break;
-        case 'offset-y':
-            g_.storage.offsetY = value;
-            break;
-        case 'stride-coarse':
-            g_.storage.strideCoarse = value;
-            break;
-        case 'stride-fine':
-            g_.storage.strideFine = value;
-            break;
-        case 'stride-div':
-            g_.storage.strideDiv = value;
-            break;
+            default:
+                console.log("unknown name", name);
+                willUpdate = false;
+                break;
+        }
+        if(willUpdate)
+            update();
+    }
+    function loadImageHandler() {
+        console.log("Loading Image");
 
-        default:
-            console.log("unknown name", name);
-            break;
-    }
-    update();
-}
+        var input, file, fr, loadedImage;
 
-function update(){
-    if(g_.storage.originalImageData !== undefined){
-        stride = g_.storage.strideCoarse + g_.storage.strideFine;
-        previewBraille(g_.storage.originalImageData, stride, stride, g_.storage.offsetY, g_.storage.offsetX, g_.storage.strideDiv);
-    }
-}
+        if (typeof window.FileReader !== 'function') {
+            write("The file API isn't supported on this browser yet.");
+            return;
+        }
 
-function loadImage() {
-    console.log("Loading Image");
-    var input, file, fr, img;
+        input = g_.inputImageFileElement;
+        if (!input) {
+            write("Um, couldn't find the imgfile element.");
+        }
+        else if (!input.files) {
+            write("This browser doesn't seem to support the `files` property of file inputs.");
+        }
+        else if (!input.files[0]) {
+            write("Please select a file before clicking 'Load'");
+        }
+        else {
+            file = input.files[0];
+            fr = new FileReader();
+            fr.onload = createImage;
+            fr.readAsDataURL(file);
+        }
 
-    if (typeof window.FileReader !== 'function') {
-        write("The file API isn't supported on this browser yet.");
-        return;
-    }
+        function createImage() {
+            loadedImage = new Image();
+            loadedImage.onload = imageLoaded;
+            loadedImage.src = fr.result;
+        }
 
-    input = inputImageFileElement;
-    if (!input) {
-        write("Um, couldn't find the imgfile element.");
-    }
-    else if (!input.files) {
-        write("This browser doesn't seem to support the `files` property of file inputs.");
-    }
-    else if (!input.files[0]) {
-        write("Please select a file before clicking 'Load'");
-    }
-    else {
-        file = input.files[0];
-        fr = new FileReader();
-        fr.onload = createImage;
-        fr.readAsDataURL(file);
-    }
+        function imageLoaded() {
+            g_.imagePreviewCanvas.width = loadedImage.width;
+            g_.imagePreviewCanvas.height = loadedImage.height;
+            g_.imagePreviewCanvas.context.drawImage(loadedImage, 0, 0);
+            g_.storage.originalCVImage = g_.imagePreviewCanvas.canvasCVImage;
+            update();
+        }
 
-    function createImage() {
-        img = new Image();
-        img.onload = imageLoaded;
-        img.src = fr.result;
-    }
-
-    function imageLoaded() {
-        var canvas = imagePreviewCanvasElement;
-        canvas.width = img.width;
-        canvas.height = img.height;
-        var ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-        g_.storage.originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-        previewBraille(g_.storage.originalImageData);
+        function write(msg) {
+            var p = document.createElement('p');
+            p.innerHTML = msg;
+            document.body.appendChild(p);
+        }
     }
 
-    function write(msg) {
-        var p = document.createElement('p');
-        p.innerHTML = msg;
-        document.body.appendChild(p);
+    function update(){
+        if(g_.storage.originalCVImage !== undefined){
+            var stride = {
+                strideX: g_.storage.strideCoarse + g_.storage.strideFine,
+                strideY: g_.storage.strideCoarse + g_.storage.strideFine,
+                offsetY: g_.storage.offsetY,
+                offsetX: g_.storage.offsetX,
+                strideDiv: g_.storage.strideDiv,
+            }
+            var canvas = {
+                imagePreviewCanvas: g_.imagePreviewCanvas,
+                stridePreviewCanvas: g_.stridePreviewCanvas,
+                braillePreviewCanvas: g_.braillePreviewCanvas
+            }
+            previewBraille(g_.storage.originalCVImage, stride, g_.storage.thresholdRange, canvas);
+        }
     }
-}
+})();
 
-function previewBraille(originalImage, strideY=30, strideX=30, offsetY=10, offsetX=10, strideDiv=1) {
 
-    originalCVImage = cv.cvtImageData2CVImage(originalImage);
-    lowresCVImage = cv.stride(originalCVImage, strideY/strideDiv, strideX/strideDiv, offsetY, offsetX);
+function previewBraille(originalCVImage, stride, thresholdRange, canvas) {
 
-    lowresImage = cv.cvtCVImage2ImageData(lowresCVImage);
-    braillePreviewCanvasElement.width = lowresImage.width;
-    braillePreviewCanvasElement.height = lowresImage.height;
-    braillePreviewCanvasElement.getContext("2d").putImageData(lowresImage, 0, 0);
+    /// Image Preview ViewPort
+    var originalCVImageClone = originalCVImage.clone();
+    // Draw red stride (divided)
+    cv.drawStride(originalCVImageClone, stride.strideY/stride.strideDiv, stride.strideX/stride.strideDiv, stride.offsetY, stride.offsetX, cv.CONST.color[originalCVImageClone.type].red);
+    // Draw green stride (grid) (placed 2nd to overlap red stride)
+    cv.drawStride(originalCVImageClone, stride.strideY, stride.strideX, stride.offsetY, stride.offsetX, cv.CONST.color[originalCVImageClone.type].green);
+    // Set image-preview image to canvas
+    canvas.imagePreviewCanvas.cvImage = originalCVImageClone;
+    canvas.imagePreviewCanvas.redraw();
 
-    // Show stride
-    console.log(originalCVImage);
-    cv.drawStride(originalCVImage, strideY/strideDiv, strideX/strideDiv, offsetY, offsetX, cv.CONST.color[originalCVImage.type].red);
-    cv.drawStride(originalCVImage, strideY, strideX, offsetY, offsetX, cv.CONST.color[originalCVImage.type].green);
-    originalImage = cv.cvtCVImage2ImageData(originalCVImage);
-    imagePreviewCanvasElement.getContext("2d").putImageData(originalImage, 0, 0);
+    /// Recommendation Stride value
+    var strideDim = cv.strideDimension(originalCVImageClone, stride.strideY, stride.strideX, stride.offsetY, stride.offsetX);
+    resolutionMessage = "Current resolution is " + strideDim.height + " x " + strideDim.width;
+    console.log(resolutionMessage);
+    label.currentOutputImageResolution = resolutionMessage;
+
+    /// Stride ViewPort
+    // originalCVImage -- apply stride -> lowresCVImage
+    var lowresCVImage = cv.stride(originalCVImage, stride.strideY/stride.strideDiv, stride.strideX/stride.strideDiv, stride.offsetY, stride.offsetX);
+    // set stride-preview image to canvas
+    canvas.stridePreviewCanvas.cvImage = lowresCVImage;
+    canvas.stridePreviewCanvas.redraw();
+
+
+    /// Thresholding (Braille) ViewPort
+    // lowresCVImage -- apply thresholding -> brailleCVImage
+    var lowerbound = [thresholdRange[0], thresholdRange[0], thresholdRange[0], 0];
+    var upperbound = [thresholdRange[1], thresholdRange[1], thresholdRange[1], 255];
+    var brailleCVImage = cv.inRange(lowresCVImage, lowerbound, upperbound);
+    // Set braille-preview image to canvas
+    canvas.braillePreviewCanvas.cvImage = brailleCVImage;
+    canvas.braillePreviewCanvas.redraw();
 }

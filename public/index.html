@@ -13,7 +13,7 @@
         <!--<link rel="stylesheet" href="css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp">-->
         <!-- My theme -->
         <!--Slider Plugin-->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.1.3/css/bootstrap-slider.min.css">
+        <link rel="stylesheet" href="css/bootstrap-slider.min.css">
         <link rel="stylesheet" href="css/style.css">
 
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -45,12 +45,14 @@
             <div class="page">
                 Load Image
                 <label class="btn btn-default btn-file">
-                    Browse <input id="image-file" type="file" style="display: none;" onchange="loadImage();">
+                    Browse <input id="image-file" type="file" style="display: none;">
                 </label>
             </div>
             <div id="image-preview" class="page">
                 <h3>image-preview</h3>
                 <canvas id="image-preview-canvas" class="canvas-preview"></canvas>
+            </div>
+            <div id="stride-preview" class="page">
                 <div class="row">
                     <div class="col-md-1">
                         Offset X
@@ -64,7 +66,7 @@
                         Offset Y
                     </div>
                     <div class="col-md-11">
-                        <input id="offset-y" name="offset-y" class="fill-width" data-slider-id="ctrl2Slider" type="text"/>
+                        <input id="offset-y" name="offset-y" class="" data-slider-id="ctrl2Slider" type="text"/>
                     </div>
                 </div>
                 <div class="row">
@@ -72,7 +74,7 @@
                         Stride coarse
                     </div>
                     <div class="col-md-11">
-                        <input id="stride-coarse" name="stride-coarse" type="number" placeholder="px" value="10">
+                        <input id="stride-coarse" name="stride-coarse" type="number" placeholder="px" value="100">
                     </div>
                 </div>
                 <div class="row">
@@ -80,7 +82,7 @@
                         Stride fine
                     </div>
                     <div class="col-md-11">
-                        <input id="stride-fine" name="stride-fine" class="fill-width" data-slider-id="ctrl3Slider" type="text"/>
+                        <input id="stride-fine" name="stride-fine" class="" data-slider-id="ctrl3Slider" type="text"/>
                     </div>
                 </div>
                 <div class="row">
@@ -91,18 +93,23 @@
                         <input id="stride-div" name="stride-div" type="number" placeholder="integer" value="1">
                     </div>
                 </div>
+                <h3>stride-preview</h3>
+                <canvas id="stride-preview-canvas" class="canvas-preview pixelated"></canvas>
             </div>
+            <div id="braille-preview" class="page">
             <div class="row">
                 <div class="col-md-1">
                     Threshold
                 </div>
                 <div class="col-md-11">
-                    <input id="ex2" name="test2" class="span2" value="" type="text" data-slider-min="10" data-slider-max="1000" data-slider-step="5" data-slider-value="[250,450]"/>
+                    <input id="threshold-value" name="threshold-value" class="" value="" type="text" data-slider-min="0" data-slider-max="255" data-slider-step="1" data-slider-value="[125,225]"/>
                 </div>
             </div>
-            <div id="braille-preview" class="page">
                 <h3>braille-preview</h3>
-                <canvas id="braille-preview-canvas" class="canvas-preview braille"></canvas>
+                <canvas id="braille-preview-canvas" class="canvas-preview pixelated"></canvas>
+                <label class="btn btn-default btn-file">
+                    Save .vim
+                </label>
             </div>
         </div>
 
@@ -110,8 +117,9 @@
         <script src="js/jquery.min.js"></script>
         <!-- Latest compiled and minified JavaScript -->
         <script src="js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.1.3/bootstrap-slider.min.js"></script>
+        <script src="js/bootstrap-slider.min.js"></script>
         <script src="js/computer-vision.js"></script>
+        <script src="js/managed-canvas.js"></script>
         <script src="js/main-script.js"></script>
     </body>
 
