@@ -1,8 +1,8 @@
 /*jshint esversion: 6, browser: true, devel: true*/
 /*globals $:false, ManagedCanvas:false, cv:false*/
-"use strict";
 
 (function(){
+    "use strict";
     // Impure Scope
     // Global
     var g_ = {};
@@ -13,31 +13,40 @@
         g_.imagePreviewCanvas = new ManagedCanvas("image-preview-canvas");
         g_.stridePreviewCanvas = new ManagedCanvas("stride-preview-canvas");
         g_.braillePreviewCanvas = new ManagedCanvas("braille-preview-canvas");
+        g_.currentBrailleImageResolutionDiv = $('#current-braille-image-resolution');
+        g_.inputImageResolutionDiv = $("#input-image-resolution")
 
-        // Global initialization
+        // Global initialization (defalut values)
         g_.storage = {
             offsetX: 10,
             offsetY: 10,
             strideCoarse: 100,
             strideFine: 0.0,
             strideDiv: 1,
-            thresholdRange: [125,225]
+            thresholdRange: [0,128],
+            printerWidth: 120,
+            printerHeight: 120
+        };
+        g_.systemStorage = {
+            brailleCVImage: undefined
         };
 
         // Initial Event Binding
         $('#image-file').change(loadImageHandler);
-        var inputElementIdList = ['#printer-width', '#printer-height', '#stride-coarse', '#stride-div'];
+        var inputElementIdList = ['printer-width', 'printer-height', 'stride-coarse', 'stride-div'];
         inputElementIdList.forEach(function(elementId) {
-            $(elementId).change(inputHandler);
+            var $element = $('#'+elementId)
+            $element.change(inputHandler);
+            $element.val(g_.storage[hyphen2camel(elementId)]);
         }, this);
-        var offsetSliderElementIdList = ['#offset-x', '#offset-y'];
+        var offsetSliderElementIdList = ['offset-x', 'offset-y'];
         offsetSliderElementIdList.forEach(function(elementId) {
-            $(elementId).slider({
+            $('#'+elementId).slider({
                 formatter: function(value) {
-                    return 'Current value: ' + value;
+                    return `Current value: ${value}`;
                 },
                 max: 100,
-                value: 10,
+                value: g_.storage[hyphen2camel(elementId)],
                 min: 0,
                 step: 1
             }).on('slide', sliderHandler);
@@ -46,20 +55,34 @@
         fineSliderElementIdList.forEach(function(elementId) {
             $(elementId).slider({
                 formatter: function(value) {
-                    return 'Current value: ' + value;
+                    return `Current value: ${value}`;
                 },
                 max: 1,
-                value: 0.0,
+                value: g_.storage[hyphen2camel(elementId)],
                 min: 0,
                 step: 0.001
             }).on('slide', sliderHandler);
         }, this);
-        $('#threshold-value').slider({
+        $('#threshold-range').slider({
             formatter: function(value) {
-                return 'Current value: ' + value;
-            }
+                return `Current value: ${value}`;
+            },
+            max: 255,
+            value: g_.storage[hyphen2camel('threshold-range')],
+            min: 0,
+            step: 1
         }).on('slide', sliderHandler);
+        $('#save-vim').click(function(e){
+            if(g_.systemStorage.brailleCVImage !== undefined){
+                console.log(braille.BCVImage2BrailleAscii(g_.systemStorage.brailleCVImage));
+                braille.DownloadBCVImageAsVimFile(g_.systemStorage.brailleCVImage);
+            }
+        });
     })();
+
+    // Helper functions
+    function camel2hyphen(str){ return str.replace(/([a-z][A-Z])/g, function (g) { return g[0] + '-' + g[1].toLowerCase(); }); }
+    function hyphen2camel(str){ return str.replace(/-([a-z])/g, function (g) { return g[1].toUpperCase(); }); }
 
     // Event Handler
     function inputHandler(inputEvent) {
@@ -74,34 +97,19 @@
         if(isNaN(value) && !Array.isArray(value)){
             value = 0;
         }
-        var willUpdate = true;
-        switch (name) {
-            case 'offset-x':
-                g_.storage.offsetX = value;
-                break;
-            case 'offset-y':
-                g_.storage.offsetY = value;
-                break;
-            case 'stride-coarse':
-                g_.storage.strideCoarse = value;
-                break;
-            case 'stride-fine':
-                g_.storage.strideFine = value;
-                break;
-            case 'stride-div':
-                g_.storage.strideDiv = value;
-                break;
-            case 'threshold-value':
-                g_.storage.thresholdRange = value;
-                break;
-
-            default:
-                console.log("unknown name", name);
-                willUpdate = false;
-                break;
+        var match = false;
+        for(var key in g_.storage){
+            if(name == camel2hyphen(key)){
+                g_.storage[key] = value;
+                match = true;
+            }
         }
-        if(willUpdate)
+        if(match) {
             update();
+        }
+        else {
+            console.log("unknown name", name);
+        }
     }
     function loadImageHandler() {
         console.log("Loading Image");
@@ -161,17 +169,27 @@
                 strideDiv: g_.storage.strideDiv,
             };
             var canvas = {
-                imagePreviewCanvas: g_.imagePreviewCanvas,
-                stridePreviewCanvas: g_.stridePreviewCanvas,
-                braillePreviewCanvas: g_.braillePreviewCanvas
+                imagePreview: g_.imagePreviewCanvas,
+                stridePreview: g_.stridePreviewCanvas,
+                braillePreview: g_.braillePreviewCanvas
             };
-            previewBraille(g_.storage.originalCVImage, stride, g_.storage.thresholdRange, canvas);
+            var label = {
+                currentBrailleImageResolution: g_.currentBrailleImageResolutionDiv,
+                inputImageResolution: g_.inputImageResolutionDiv
+            };
+            g_.systemStorage.brailleCVImage = 
+                previewBraille(g_.storage.originalCVImage, stride, g_.storage.thresholdRange, canvas, label);
         }
     }
 })();
 
 
-function previewBraille(originalCVImage, stride, thresholdRange, canvas) {
+function previewBraille(originalCVImage, stride, thresholdRange, canvas, label) {
+    "use strict";
+
+    /// Image Resolution Message
+    var inputImageResolutionMessage = `Image resolution is ${originalCVImage.height} x ${originalCVImage.width}`;
+    label.inputImageResolution.text(inputImageResolutionMessage);
 
     /// Image Preview ViewPort
     var originalCVImageClone = originalCVImage.clone();
@@ -180,21 +198,26 @@ function previewBraille(originalCVImage, stride, thresholdRange, canvas) {
     // Draw green stride (grid) (placed 2nd to overlap red stride)
     cv.drawStride(originalCVImageClone, stride.strideY, stride.strideX, stride.offsetY, stride.offsetX, cv.CONST.color[originalCVImageClone.type].green);
     // Set image-preview image to canvas
-    canvas.imagePreviewCanvas.cvImage = originalCVImageClone;
-    canvas.imagePreviewCanvas.redraw();
+    canvas.imagePreview.cvImage = originalCVImageClone;
+    canvas.imagePreview.redraw();
 
-    /// Recommendation Stride value
-    var strideDim = cv.strideDimension(originalCVImageClone, stride.strideY, stride.strideX, stride.offsetY, stride.offsetX);
-    var resolutionMessage = "Current resolution is " + strideDim.height + " x " + strideDim.width;
-    console.log(resolutionMessage);
-    // label.currentOutputImageResolution = resolutionMessage;
+    /// Recommendation Stride value Message
+    var resolutionMessage = "";
+    // var maxStrideDivValue = min(
+    //     originalCVImageClone.width
+    // );
+    // originalCVImageClone.width
+    // originalCVImageClone.height
+    var strideDim = cv.strideDimension(originalCVImageClone, stride.strideY/stride.strideDiv, stride.strideX/stride.strideDiv, stride.offsetY, stride.offsetX);
+    resolutionMessage += `Current braille resolution is ${strideDim.height} x ${strideDim.width}`;
+    label.currentBrailleImageResolution.text(resolutionMessage);
 
     /// Stride ViewPort
     // originalCVImage -- apply stride -> lowresCVImage
     var lowresCVImage = cv.stride(originalCVImage, stride.strideY/stride.strideDiv, stride.strideX/stride.strideDiv, stride.offsetY, stride.offsetX);
     // set stride-preview image to canvas
-    canvas.stridePreviewCanvas.cvImage = lowresCVImage;
-    canvas.stridePreviewCanvas.redraw();
+    canvas.stridePreview.cvImage = lowresCVImage;
+    canvas.stridePreview.redraw();
 
 
     /// Thresholding (Braille) ViewPort
@@ -203,6 +226,7 @@ function previewBraille(originalCVImage, stride, thresholdRange, canvas) {
     var upperbound = [thresholdRange[1], thresholdRange[1], thresholdRange[1], 255];
     var brailleCVImage = cv.inRange(lowresCVImage, lowerbound, upperbound);
     // Set braille-preview image to canvas
-    canvas.braillePreviewCanvas.cvImage = brailleCVImage;
-    canvas.braillePreviewCanvas.redraw();
+    canvas.braillePreview.cvImage = brailleCVImage;
+    canvas.braillePreview.redraw();
+    return brailleCVImage;
 }

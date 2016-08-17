@@ -40,6 +40,7 @@
                     <input id="printer-width" name="printer-width" type="number" placeholder="Width">
                     x
                     <input id="printer-height" name="printer-height" type="number" placeholder="Height">
+                    <-- This does nothing yet, don't worry about it.
                 </label>
             </div>
             <div class="page">
@@ -47,6 +48,7 @@
                 <label class="btn btn-default btn-file">
                     Browse <input id="image-file" type="file" style="display: none;">
                 </label>
+                <div id="input-image-resolution"></div>
             </div>
             <div id="image-preview" class="page">
                 <h3>image-preview</h3>
@@ -74,7 +76,7 @@
                         Stride coarse
                     </div>
                     <div class="col-md-11">
-                        <input id="stride-coarse" name="stride-coarse" type="number" placeholder="px" value="100">
+                        <input id="stride-coarse" name="stride-coarse" type="number" placeholder="px">
                     </div>
                 </div>
                 <div class="row">
@@ -89,8 +91,10 @@
                     <div class="col-md-1">
                         Stride divider
                     </div>
-                    <div class="col-md-11">
-                        <input id="stride-div" name="stride-div" type="number" placeholder="integer" value="1">
+                    <div class="col-md-10">
+                        <input id="stride-div" name="stride-div" type="number" placeholder="integer">
+                    </div>
+                    <div id="current-braille-image-resolution" class="col-md-1">
                     </div>
                 </div>
                 <h3>stride-preview</h3>
@@ -102,25 +106,32 @@
                     Threshold
                 </div>
                 <div class="col-md-11">
-                    <input id="threshold-value" name="threshold-value" class="" value="" type="text" data-slider-min="0" data-slider-max="255" data-slider-step="1" data-slider-value="[125,225]"/>
+                    <input id="threshold-range" name="threshold-range" class="" value="" type="text"/>
                 </div>
             </div>
                 <h3>braille-preview</h3>
                 <canvas id="braille-preview-canvas" class="canvas-preview pixelated"></canvas>
-                <label class="btn btn-default btn-file">
+                <label id="save-vim" class="btn btn-default btn-file">
                     Save .vim
                 </label>
             </div>
         </div>
 
+        <!-- External Libraries -->
         <!-- jQuery for Bootstrap -->
         <script src="js/jquery.min.js"></script>
-        <!-- Latest compiled and minified JavaScript -->
+        <!-- Latest compiled and minified JavaScript of Bootstrap -->
         <script src="js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"></script>
+        <!-- Bootstrap Slider -->
         <script src="js/bootstrap-slider.min.js"></script>
+        <!-- File saver -->
+        <script src="js/FileSaver.min.js"></script>
+
+        <!-- Internal Libraries -->
         <script src="js/computer-vision.js"></script>
         <script src="js/managed-canvas.js"></script>
         <script src="js/braille-ascii.js"></script>
+        <!-- Scripts -->
         <script src="js/main-script.js"></script>
     </body>
 
