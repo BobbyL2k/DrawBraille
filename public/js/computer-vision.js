@@ -1,5 +1,4 @@
-/*jshint esversion: 6*/
-"use strict";
+/*jshint esversion: 6, browser: true*/
 
 // Global cv object
 var cv = {
@@ -25,6 +24,7 @@ var cv = {
 };
 
 (function cvInit(){
+    "use strict";
 
     class CVImage {
         // CV Image
@@ -167,17 +167,18 @@ var cv = {
     cv.cvtCVImage2ImageData = cvtCVImage2ImageData;
     function cvtCVImage2ImageData(cvImage){
         var imageData = new ImageData(cvImage.width, cvImage.height);
+        var pixelCount = cvImage.height * cvImage.width;
+        var c;
         switch (cvImage.type) {
             case "RGBA":
                 // imageData.data = cvImage._data;
-                var dataSize = cvImage.height * cvImage.width * 4;
-                for(var c=dataSize-1; c>=0; c--){
+                var dataSize = pixelCount * 4;
+                for(c=dataSize-1; c>=0; c--){
                     imageData.data[c] = cvImage._data[c];
                 }
                 break;
             case "RGB":
-                var pixelCount = cvImage.height * cvImage.width;
-                for(var c=pixelCount-1; c>=0; c--){
+                for(c = pixelCount-1; c>=0; c--){
                     imageData.data[c*4 + 0] = cvImage._data[c*3 + 0];
                     imageData.data[c*4 + 1] = cvImage._data[c*3 + 1];
                     imageData.data[c*4 + 2] = cvImage._data[c*3 + 2];
@@ -185,8 +186,7 @@ var cv = {
                 }
                 break;
             case "G":
-                var pixelCount = cvImage.height * cvImage.width;
-                for(var c=pixelCount-1; c>=0; c--){
+                for(c = pixelCount-1; c>=0; c--){
                     imageData.data[c*4 + 0] = cvImage._data[c];
                     imageData.data[c*4 + 1] = cvImage._data[c];
                     imageData.data[c*4 + 2] = cvImage._data[c];
@@ -194,8 +194,7 @@ var cv = {
                 }
                 break;
             case "B":
-                var pixelCount = cvImage.height * cvImage.width;
-                for(var c=pixelCount-1; c>=0; c--){
+                for(c = pixelCount-1; c>=0; c--){
                     var value = cvImage._data[c] ? 255 : 0;
                     imageData.data[c*4 + 0] = value;
                     imageData.data[c*4 + 1] = value;
@@ -237,17 +236,17 @@ var cv = {
         function image_set(image, y, x, ch, value){
             // setting value from browser's Image object
             image.data[((y*(image.width*4)) + (x*4)) + ch] = value;
-        }
+        } 
 
         cv.bimg.image_get = image_get;
         function image_get(image, y, x, ch){
             // getting value from browser's Image object
-            return image.data[((y*(image.width*4)) + (x*4)) + ch]
+            return image.data[((y*(image.width*4)) + (x*4)) + ch];
         }
     })();
 
 })();
 
-(function debug(){
-    console.log("Computer Vision Library Loaded", cv);
-})();
+// (function debug(){
+//     console.log("Computer Vision Library Loaded", cv);
+// })();

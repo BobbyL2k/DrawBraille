@@ -20,7 +20,7 @@ class ManagedCanvas{
         return this._cvImage;
     }
     set cvImage(cvImage){
-        if(cvImage instanceof cv.CVImage == false)
+        if(cvImage instanceof cv.CVImage === false)
             throw "ManagedCanvas set image with non cv.CVImage instance";
         this._cvImage = cvImage;
         // Config HTML's canvas dimenstion
@@ -42,9 +42,15 @@ class ManagedCanvas{
                 this.canvasElement.height));
     }
     set height(height){
-        this.canvasElement.height = height
+        this.canvasElement.height = height;
+    }
+    get height(){
+        return this.canvasElement.height;
     }
     set width(width){
-        this.canvasElement.width = width
+        this.canvasElement.width = width;
+    }
+    get width(){
+        return this.canvasElement.width;
     }
 }

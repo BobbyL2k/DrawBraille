@@ -1,4 +1,5 @@
-/*jshint esversion: 6, browser: true*/
+/*jshint esversion: 6, browser: true, devel: true*/
+/*globals $:false, ManagedCanvas:false, cv:false*/
 "use strict";
 
 (function(){
@@ -158,12 +159,12 @@
                 offsetY: g_.storage.offsetY,
                 offsetX: g_.storage.offsetX,
                 strideDiv: g_.storage.strideDiv,
-            }
+            };
             var canvas = {
                 imagePreviewCanvas: g_.imagePreviewCanvas,
                 stridePreviewCanvas: g_.stridePreviewCanvas,
                 braillePreviewCanvas: g_.braillePreviewCanvas
-            }
+            };
             previewBraille(g_.storage.originalCVImage, stride, g_.storage.thresholdRange, canvas);
         }
     }
@@ -184,9 +185,9 @@ function previewBraille(originalCVImage, stride, thresholdRange, canvas) {
 
     /// Recommendation Stride value
     var strideDim = cv.strideDimension(originalCVImageClone, stride.strideY, stride.strideX, stride.offsetY, stride.offsetX);
-    resolutionMessage = "Current resolution is " + strideDim.height + " x " + strideDim.width;
+    var resolutionMessage = "Current resolution is " + strideDim.height + " x " + strideDim.width;
     console.log(resolutionMessage);
-    label.currentOutputImageResolution = resolutionMessage;
+    // label.currentOutputImageResolution = resolutionMessage;
 
     /// Stride ViewPort
     // originalCVImage -- apply stride -> lowresCVImage
