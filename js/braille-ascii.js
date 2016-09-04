@@ -41,7 +41,7 @@ braille = {};
         }
         function getPixelSafe(CVImage, y, x){
             if(x < 0 || CVImage.width <= x || y < 0 || CVImage.height <= y){
-                console.log(x, y, CVImage.width, CVImage.height);
+                // console.log(x, y, CVImage.width, CVImage.height);
                 return 0;
             }
             else{
@@ -60,10 +60,10 @@ braille = {};
                     getPixelSafe(CVImage, cy+2, cx  ),
                     getPixelSafe(CVImage, cy+2, cx+1) 
                 ];
-                console.log(boxNumList);
+                // console.log(boxNumList);
                 line += dot2BALT[binaryListToNumbers(boxNumList)];
             }
-            line += '\n';
+            line += '\r\n';
             lines.push(line);
         }
         return lines;
@@ -72,8 +72,8 @@ braille = {};
     function DownloadBCVImageAsVimFile(CVImage, filename="braille.vim"){
         lines = BCVImage2BrailleAscii(CVImage);
         // .vim file header
-        lines.unshift("1\n");
-        var blob = new Blob(lines, {type: "text/plain;charset=utf-8"});
+        lines.unshift("\u001B1\r\n");
+        var blob = new Blob(lines/*, {type: "text/plain;charset=utf-8"}*/);
         saveAs(blob, filename);
     }
 })() ;
